@@ -19,7 +19,7 @@ A Power BI data connector built with M language that automates extraction, trans
 - **Bearer Token** Authentication
 
 
-## 🔧 Setup Instructions
+## Setup Instructions
 
 1. **Open Power BI Desktop**
 2. **Create New Query** → **Blank Query**
@@ -27,13 +27,13 @@ A Power BI data connector built with M language that automates extraction, trans
 4. **Update Credentials** with your API keys, you need to create two parameters for the service name and service key, visible where as documentated in the code within the authentication block in the beginning.
 5. **Refresh Data** to load latest information
 
-## 💡 Use Cases
+## Use Cases
 
 - Financial market data analysis
 - Real-time commodity pricing dashboards
 - Automated reporting from API data sources
 - Business intelligence with live data feeds
 
-## 🔄 Alternative Implementation
+## Alternative Implementation
 
 Check out the Python version (https://github.com/StanAntonov/API-csvchart) of this project for a code-based approach to the same data pipeline.
