@@ -1,0 +1,52 @@
+let
+    //Authentication
+    authURL = "https://auth.fastmarkets.com/connect/token",
+    headers = [
+        #"Content-Type" = "application/x-www-form-urlencoded",
+        #"Accept" = "*/*"
+    ],
+    postData = [
+        grant_type = "servicekey",
+        client_id = "service_client",
+        scope = "fastmarkets.physicalprices.api",
+        serviceName = {#"Service-Name"}, //For better flexability and when using multiple queries, I've stored the credentials as paremeters for quick reference.
+        serviceKey = {#"Service-Key"}
+    ],
+    response = Json.Document(Web.Contents(authURL, [
+        Headers = headers,
+        Content = Text.ToBinary(Uri.BuildQueryString(postData))
+    ])),
+    AccessToken = response[access_token],
+    AccessTokenHeader = "bearer " & AccessToken,
+
+    //Define symbols
+    symbols = {"FP-GP-0167", "FP-GP-0163", "FP-GP-0158", "FP-GP-0153", "FP-GP-0166", "FP-GP-0162", "FP-GP-0168", "FP-GP-0170"},
+
+    //API endpoints
+    instrumentsUrl = "https://api.fastmarkets.com/physical/v2/Instruments?Symbols=" & Lines.ToText(symbols, ","),
+    pricesUrl = "https://api.fastmarkets.com/physical/v2/Prices?Symbols=" & Lines.ToText(symbols, ","),
+
+    //Get data
+    instruments = Json.Document(Web.Contents(instrumentsUrl, [Headers=[Authorization=AccessTokenHeader]])),
+    prices = Json.Document(Web.Contents(pricesUrl, [Headers=[Authorization=AccessTokenHeader]])),
+
+    //Json to tables
+    instrumentsTable = Table.FromRecords(instruments[instruments]),
+
+    pricesTable = Table.ExpandTableColumn(
+        Table.FromRecords(prices[instruments]),
+        "prices",
+        {"assessmentDate", "low", "high", "revision"},
+        {"assessmentDate", "low", "high", "revision"}
+    ),
+
+    //Join by symbols
+    combinedTable = Table.Join(pricesTable, "symbol", instrumentsTable, "symbol", JoinKind.Inner),
+
+    //Select relevant columns
+    FinalTable = Table.SelectColumns(combinedTable, {
+        "symbol", "description", "assessmentDate", "low", "high", "revision", "status"
+    }),
+    #"Changed Type" = Table.TransformColumnTypes(FinalTable,{{"assessmentDate", type text}, {"low", Int64.Type}, {"high", Int64.Type}, {"symbol", type text}})
+in
+    #"Changed Type"
